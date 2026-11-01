@@ -3,8 +3,9 @@
 Do Android phones paas lao → dono "Share" dabao → contact / photo / file chali jaaye.
 iPhone NameDrop / AirDrop jaisa feel, Android pe. (Working name — final naam baad mein.)
 
-**Abhi ka status: Phase 1 (discovery).** Dono phones Bluetooth se ek-dusre ko dhoondhte hain aur
-**Nearby Phones** screen pe live signal strength (RSSI) dikhti hai. Tap karke share karna Phase 2–3 mein aayega.
+**Abhi ka status: Phase 2 + 3.** Phones jodo → glow + vibration → contact poster (Share / Receive Only),
+ya photos/files bhejo (Gallery → Share → TapShare). **Dono phones pe TapShare khula hona chahiye** (app band
+hone pe kaam karna Phase 4 mein aayega).
 
 ## APK seedha phone pe (sabse aasaan)
 
@@ -51,6 +52,28 @@ SDK 37 na ho to Studio khud download karne ko bolega.
 | 13 | Android 10/11 phone ho to Location band karo | Card: "Location is off" + **Open Location Settings** |
 
 Kuch bhi alag dikhe → screenshot + `adb logcat -s TapShare` ka output bhejo.
+
+## Phase 2 + 3 test checklist (2 phones, dono pe nayi APK)
+
+| # | Kya karo | Kya dikhna chahiye |
+|---|---|---|
+| 1 | Home → **My Card** → naam + photo daalo (dono phones pe) | Home ke upar aapka naam/photo |
+| 2 | Dono phones pe TapShare Home khula rakho, **tops ko chhuao** | Pehle "1 TapShare phone nearby…", phir "Hold them together…" |
+| 3 | ~1 second chhue rakho | Zor ki vibration + camera ke paas se safed glow + lehar; ~1 s baad **apna poster** (bada naam/photo) |
+| 4 | Poster pe upar dekho | "With <doosre ka naam>" + unki chhoti photo |
+| 5 | Dono **Share** dabao | Dono pe doosre ka card + **Save Contact** → Contacts app khulta hai, sab bhara hua |
+| 6 | Ek **Receive Only**, ek **Share** | Share karne wale pe "Your card was sent", doosre pe uska card |
+| 7 | Glow ke beech phones **door kar do** | Chupchaap cancel, wapas Home |
+| 8 | Gallery → photo(s) chuno → **Share → TapShare** | TapShare "3 photos ready" screen (thumbnails) |
+| 9 | Ab doosre phone se chhuao (doosre pe Home khula) | Doosre phone pe: aapka naam + photo + preview + "wants to share 3 photos" → **Accept / Decline** |
+| 10 | Accept | Dono pe progress ring + "2 of 3 · 4 MB of 10 MB"; end pe ✓ + vibration |
+| 11 | Receiver pe **Open** | Photo khulti hai; Gallery → Pictures/TapShare mein bhi |
+| 12 | Home → Send → **Files** se PDF bhejo | Download/TapShare mein sahi naam se save |
+| 13 | Transfer ke beech **Cancel** | Doosre pe "<naam> cancelled" |
+| 14 | Wi-Fi band karke bhejo | Chalega (Bluetooth se, slow) + "Wi-Fi is off…" hint |
+
+**Tap nahi ho raha?** Nearby Phones → dono phones ko chhua ke **Calibrate** dabao (3 s). "loss" number aur
+"sees this phone ✓" dono taraf dikhna chahiye. Screenshot bhejo.
 
 ## Phase 1 test checklist (2 phones)
 

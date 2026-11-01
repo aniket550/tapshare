@@ -98,7 +98,7 @@ Rule: discovery, handshake and transfer must stay separate, so the transfer meth
 ---
 
 ## Build phases (do in order, one at a time)
-Status: Phase 0 ✅ tested by Aniket (2026-11-01). Phase 1 built — waiting for his RSSI table (README).
+Status: Phase 0 ✅, Phase 1 ✅ tested by Aniket (2026-11-01; Ultra low: touching ≈ −43 dBm, far ≈ −80). Phase 2+3 built together at his request (tap → glow → poster / photos+files) — waiting for his test. Phase 4 next: works with app closed.
 APK: every push to `main` → GitHub Actions → https://github.com/aniket550/tapshare/releases/tag/latest
 Finish and test each phase on two real phones before starting the next.
 
@@ -150,12 +150,14 @@ Record our app and an iPhone doing the same thing, put the videos side by side. 
 - `startScan(filters, settings, PendingIntent)` was evaluated: OEMs (Xiaomi, OnePlus) batch results by minutes → too slow for tap detection. Keep callback scan in the foreground service.
 
 ### Tap detection
+- Implemented in `discovery/TapDetector.kt` (pure, tested): **path loss** = peer TX − smoothed RSSI, enter ≤ 32 dB (default, calibratable), exit = enter + 8 dB, hold 600 ms, ≥ 3 samples. Mutual via `closeTo` (4-byte ID prefix) + `FLAG_TRIGGERED` in the 13-byte scan-response service data. Disarmed after a tap until pulled apart.
 - RSSI varies a lot between phone models. Never hardcode one magic number without the debug screen data; keep the threshold in a config with a per-device calibration option.
 - Require **mutual detection** (A sees B and B sees A) to avoid false triggers from someone sitting nearby.
 - Phones' antennas are in different places — test back-to-back and top-to-top.
 
 ### Privacy & security
 - BLE advertisement carries **only a random rotating ID** (rotate ~every 15 min). Never put name, phone number, or email in BLE ads.
+- After a mutual tap, Nearby Hello carries the **display name + 96 px photo** (like AirDrop showing who's sending). Phone/email only in the Card message after "Share"; files only after the receiver taps Accept. Message format: `handshake/SessionMessages.kt` (versioned, tested).
 - Nothing is sent before **both** users accept. Never auto-accept files.
 - Contact card fields are chosen by the user (they decide what to share).
 - Rely on Nearby Connections' built-in encryption; don't roll custom crypto.
