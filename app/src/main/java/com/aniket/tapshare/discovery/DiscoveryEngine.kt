@@ -84,7 +84,13 @@ class DiscoveryEngine(
     /** A share session paused the radios (Nearby Connections needs Bluetooth to itself). */
     private var held = false
     private var radiosOn = false
+
+    /** Fast adverts + scans in effect (app visible, or a short burst because a phone came near). */
     private var fast = false
+    private var foreground = false
+    private var bursting = false
+    private var lastBurstEnd = 0L
+    private var burstJob: Job? = null
     private var tapsEnabled = false
 
     /** Phone we currently advertise as "touching" (closeTo field). */
@@ -158,14 +164,43 @@ class DiscoveryEngine(
     }
 
     fun setForeground(visible: Boolean) {
-        if (fast == visible) return
-        fast = visible
-        _state.update { it.copy(fast = visible) }
+        if (foreground == visible) return
+        foreground = visible
+        applySpeed()
+    }
+
+    /** Switch adverts/scans between fast and low-power when needed (each switch restarts the scan). */
+    private fun applySpeed() {
+        val shouldBeFast = foreground || bursting
+        if (shouldBeFast == fast) return
+        fast = shouldBeFast
+        _state.update { it.copy(fast = shouldBeFast) }
         if (radiosOn) {
             startAdvertising()
             requestScanStart()
         }
         updateTicker()
+    }
+
+    /**
+     * App closed: when a TapShare phone gets near, go fast for up to 10 s so a tap is detected in
+     * about a second (battery rule: LOW_LATENCY only in short bursts). At most one burst per 20 s
+     * keeps us under Android's 5-scan-starts-per-30 s limit.
+     */
+    private fun maybeBurst(loss: Double, nowMs: Long) {
+        if (foreground || bursting || !radiosOn) return
+        if (loss > detector.config.exitLossDb + BURST_EXTRA_DB) return
+        if (nowMs - lastBurstEnd < BURST_COOLDOWN_MS) return
+        TapLog.i("Discovery: phone near while closed, fast burst")
+        bursting = true
+        applySpeed()
+        burstJob?.cancel()
+        burstJob = scope.launch {
+            delay(BURST_MS)
+            bursting = false
+            lastBurstEnd = now()
+            applySpeed()
+        }
     }
 
     fun setTxPower(txPower: TxPower) {
@@ -229,6 +264,9 @@ class DiscoveryEngine(
             TapLog.i("Discovery: radios off")
             rotationJob?.cancel()
             scanStartJob?.cancel()
+            burstJob?.cancel()
+            bursting = false
+            fast = foreground
             advertiser.stop()
             scanner.stop()
             peers.clear()
@@ -307,6 +345,7 @@ class DiscoveryEngine(
         if (isNew) TapLog.i("Discovery: found ${DiscoveryProtocol.shortLabel(id)} rssi=$rssi tx=$txPower")
 
         val loss = pathLoss(peers.smoothedOf(id) ?: rssi.toDouble(), txPower)
+        maybeBurst(loss, now)
         if (detector.update(id, loss, now)) {
             TapLog.i("Discovery: ${DiscoveryProtocol.shortLabel(id)} pulled apart (loss=${loss.toInt()} dB)")
             _events.tryEmit(DiscoveryEvent.Apart(id))
@@ -363,5 +402,10 @@ class DiscoveryEngine(
         const val TICK_MS = 500L
         const val MIN_PUBLISH_GAP_MS = 200L
         const val CALIBRATION_MS = 3_000L
+        const val BURST_MS = 10_000L
+        const val BURST_COOLDOWN_MS = 20_000L
+
+        /** "Near" for a burst = within the touching exit band + this much (≈ an arm's length). */
+        const val BURST_EXTRA_DB = 12.0
     }
 }

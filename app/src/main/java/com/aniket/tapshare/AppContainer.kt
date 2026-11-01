@@ -6,6 +6,7 @@ import com.aniket.tapshare.data.SettingsStore
 import com.aniket.tapshare.discovery.DiscoveryEngine
 import com.aniket.tapshare.session.SessionManager
 import com.aniket.tapshare.share.Outbox
+import com.aniket.tapshare.ui.animation.GlowOverlay
 import com.aniket.tapshare.ui.animation.Haptics
 import com.aniket.tapshare.service.DeviceConditionsSource
 import com.aniket.tapshare.util.PermissionsRepository
@@ -39,7 +40,10 @@ class AppContainer(app: Application) {
     val haptics = Haptics(app)
 
     /** One tap = one session (contact exchange or photo/file transfer). */
-    val session = SessionManager(app, appScope, discovery, myCard, outbox, haptics)
+    /** Rainbow glow over other apps when a tap happens with TapShare closed. */
+    val glowOverlay = GlowOverlay(app)
+
+    val session = SessionManager(app, appScope, discovery, myCard, outbox, haptics, settings, glowOverlay)
 
     private val _serviceRunning = MutableStateFlow(false)
     val serviceRunning: StateFlow<Boolean> = _serviceRunning.asStateFlow()

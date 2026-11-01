@@ -60,10 +60,9 @@ class TapShareService : Service() {
                     .collect { (readiness, bluetooth) -> onReadinessChanged(readiness, bluetooth) }
             }
         }
-        // Not sticky: Android 12+ blocks foreground-service starts from the background, so a
-        // system restart could fail. The app restarts the service itself when it is opened.
-        // Surviving reboots / app-closed is Phase 4.
-        return START_NOT_STICKY
+        // Sticky when the user wants TapShare to work while closed: if Android kills us, it restarts
+        // the service; if that restart isn't allowed to go foreground, enterForeground() fails safely.
+        return if (container.settings.backgroundEnabled.value) START_STICKY else START_NOT_STICKY
     }
 
     private fun enterForeground(): Boolean {

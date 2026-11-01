@@ -253,6 +253,8 @@ fun HomeScreen(
             }
         }
 
+        SpeedAndBackgroundSections()
+
         Spacer(Modifier.height(28.dp))
         GroupedSection(
             header = stringResource(R.string.section_sharing),

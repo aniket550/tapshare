@@ -20,6 +20,9 @@ object ServiceController {
         }
     }
 
+    /** Start regardless of the "running" flag (boot receiver, or when we know it's not running). */
+    fun startNow(context: Context) = start(context)
+
     private fun start(context: Context) {
         try {
             ContextCompat.startForegroundService(context, Intent(context, TapShareService::class.java))

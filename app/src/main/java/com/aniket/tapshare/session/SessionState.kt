@@ -120,3 +120,15 @@ sealed interface SessionState {
 }
 
 enum class SendPhase { CONNECTING, WAITING_FOR_ACCEPT, TRANSFERRING }
+
+/** The link to the other phone, for the "Dynamic Island"-style pill at the top. */
+sealed interface LinkStatus {
+    data object None : LinkStatus
+    data object Connecting : LinkStatus
+
+    /** [since] changes on each new connection (drives the "connected" glow pulse). */
+    data class Connected(val peer: PeerInfo?, val since: Long) : LinkStatus
+
+    /** Shown for a few seconds. [lost] = it dropped unexpectedly (not a normal end). */
+    data class Disconnected(val peerName: String?, val lost: Boolean) : LinkStatus
+}

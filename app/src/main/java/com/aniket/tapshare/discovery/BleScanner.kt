@@ -34,7 +34,7 @@ class BleScanner(
 
         val filters = listOf(ScanFilter.Builder().setServiceUuid(uuid).build())
         val settings = ScanSettings.Builder()
-            .setScanMode(if (fast) ScanSettings.SCAN_MODE_LOW_LATENCY else ScanSettings.SCAN_MODE_LOW_POWER)
+            .setScanMode(if (fast) ScanSettings.SCAN_MODE_LOW_LATENCY else ScanSettings.SCAN_MODE_BALANCED)
             .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // every packet → live RSSI
             .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
             .setNumOfMatches(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT)

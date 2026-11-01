@@ -11,8 +11,20 @@ class PermissionPlanTest {
 
     @Test
     fun android10_asksOnlyForLocation() {
-        assertEquals(setOf("FINE_LOCATION", "COARSE_LOCATION"), names(29))
-        assertEquals(listOf(PermissionGroup.LOCATION), PermissionPlan.groupsFor(29))
+        assertEquals(setOf("FINE_LOCATION", "COARSE_LOCATION", "BACKGROUND_LOCATION"), names(29))
+        assertEquals(listOf(PermissionGroup.LOCATION, PermissionGroup.BACKGROUND_LOCATION), PermissionPlan.groupsFor(29))
+    }
+
+    @Test
+    fun backgroundLocationOnlyOnAndroid10and11_andNeverInFirstRunRequest() {
+        assertTrue("BACKGROUND_LOCATION" in names(30))
+        assertFalse("BACKGROUND_LOCATION" in names(31))
+        val summary = PermissionPlan.summarize(30, { false }, { false }, { false })
+        assertTrue(summary.requestable.none { it == AppPermission.BACKGROUND_LOCATION })
+        assertTrue(summary.onboardingGroups.none { it.group == PermissionGroup.BACKGROUND_LOCATION })
+        assertFalse(summary.allRequiredGranted)
+        val allButBackground = PermissionPlan.summarize(30, { it != AppPermission.BACKGROUND_LOCATION }, { true }, { false })
+        assertTrue(allButBackground.allRequiredGranted) // optional: app works with it open
     }
 
     @Test
@@ -86,5 +98,7 @@ class PermissionPlanTest {
     fun summary_firstLaunchEverythingRequestable() {
         val summary = PermissionPlan.summarize(31, { false }, { false }, { false })
         assertEquals(PermissionPlan.permissionsFor(31).toSet(), summary.requestable.toSet())
+        val old = PermissionPlan.summarize(29, { false }, { false }, { false })
+        assertEquals(setOf(AppPermission.FINE_LOCATION, AppPermission.COARSE_LOCATION), old.requestable.toSet())
     }
 }

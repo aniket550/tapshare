@@ -42,6 +42,36 @@ class SettingsStore(context: Context) {
         _tapEnterLossDb.value = db
     }
 
+    private val _fastTransfer = MutableStateFlow(prefs.getBoolean(KEY_FAST_TRANSFER, true))
+
+    /** Nearby DISRUPTIVE mode: fastest Wi-Fi link, may drop internet during a transfer. */
+    val fastTransfer: StateFlow<Boolean> = _fastTransfer.asStateFlow()
+
+    fun setFastTransfer(on: Boolean) {
+        prefs.edit { putBoolean(KEY_FAST_TRANSFER, on) }
+        _fastTransfer.value = on
+    }
+
+    private val _smallerPhotos = MutableStateFlow(prefs.getBoolean(KEY_SMALLER_PHOTOS, false))
+
+    /** Shrink photos (long side 2048 px, JPEG) before sending: much faster, a bit lower quality. */
+    val smallerPhotos: StateFlow<Boolean> = _smallerPhotos.asStateFlow()
+
+    fun setSmallerPhotos(on: Boolean) {
+        prefs.edit { putBoolean(KEY_SMALLER_PHOTOS, on) }
+        _smallerPhotos.value = on
+    }
+
+    private val _backgroundEnabled = MutableStateFlow(prefs.getBoolean(KEY_BACKGROUND, true))
+
+    /** Work when TapShare is closed (needs "Display over other apps"). */
+    val backgroundEnabled: StateFlow<Boolean> = _backgroundEnabled.asStateFlow()
+
+    fun setBackgroundEnabled(on: Boolean) {
+        prefs.edit { putBoolean(KEY_BACKGROUND, on) }
+        _backgroundEnabled.value = on
+    }
+
     /** Needed to tell "never asked" apart from "denied for good" (Android has no direct API). */
     fun wasPermissionAsked(permission: String): Boolean =
         prefs.getStringSet(KEY_ASKED_PERMISSIONS, emptySet())!!.contains(permission)
@@ -56,5 +86,8 @@ class SettingsStore(context: Context) {
         const val KEY_ASKED_PERMISSIONS = "asked_permissions"
         const val KEY_TX_POWER = "tx_power"
         const val KEY_TAP_ENTER_LOSS = "tap_enter_loss_db"
+        const val KEY_FAST_TRANSFER = "fast_transfer"
+        const val KEY_SMALLER_PHOTOS = "smaller_photos"
+        const val KEY_BACKGROUND = "background_enabled"
     }
 }

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -30,11 +31,25 @@ class PermissionsRepository(
     private val _notificationsEnabled = MutableStateFlow(readNotificationsEnabled())
     val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
+    /** "Display over other apps" (special access, granted in Settings) — needed to work while closed. */
+    private val _overlayAllowed = MutableStateFlow(Settings.canDrawOverlays(context))
+    val overlayAllowed: StateFlow<Boolean> = _overlayAllowed.asStateFlow()
+
+    /** Android 10–11 only: "Allow all the time" location, so BLE scans work while TapShare is closed. */
+    val backgroundLocationNeeded: Boolean = sdk in AppPermission.BACKGROUND_LOCATION.sdkRange
+    private val _backgroundLocationGranted = MutableStateFlow(readBackgroundLocation())
+    val backgroundLocationGranted: StateFlow<Boolean> = _backgroundLocationGranted.asStateFlow()
+
     /** Pass the Activity when you have one: only it can tell us "should show rationale". */
     fun refresh(activity: Activity?) {
         _summary.value = compute(activity)
         _notificationsEnabled.value = readNotificationsEnabled()
+        _overlayAllowed.value = Settings.canDrawOverlays(context)
+        _backgroundLocationGranted.value = readBackgroundLocation()
     }
+
+    private fun readBackgroundLocation(): Boolean =
+        !backgroundLocationNeeded || isGranted(AppPermission.BACKGROUND_LOCATION)
 
     fun markRequested(permissions: Collection<AppPermission>) {
         settings.markPermissionsAsked(permissions.map { it.manifestName })

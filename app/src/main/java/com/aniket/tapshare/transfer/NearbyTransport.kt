@@ -7,7 +7,9 @@ import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.AdvertisingOptions
 import com.google.android.gms.nearby.connection.ConnectionInfo
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback
+import com.google.android.gms.nearby.connection.ConnectionOptions
 import com.google.android.gms.nearby.connection.ConnectionResolution
+import com.google.android.gms.nearby.connection.ConnectionType
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo
 import com.google.android.gms.nearby.connection.DiscoveryOptions
@@ -44,6 +46,7 @@ class NearbyTransport(context: Context) {
     private var myName: String = ""
     private var endpointId: String? = null
     private var requested = false
+    private var connectionType = ConnectionType.BALANCED
 
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
@@ -98,7 +101,8 @@ class NearbyTransport(context: Context) {
             if (listener == null || info.endpointName != peerName || requested) return
             requested = true
             TapLog.i("Nearby: found the tapped phone, connecting")
-            client.requestConnection(myName, id, lifecycle).addOnFailureListener { e ->
+            val options = ConnectionOptions.Builder().setConnectionType(connectionType).build()
+            client.requestConnection(myName, id, lifecycle, options).addOnFailureListener { e ->
                 val code = (e as? ApiException)?.statusCode
                 if (code == ConnectionsStatusCodes.STATUS_ALREADY_CONNECTED_TO_ENDPOINT) return@addOnFailureListener
                 requested = false // allow a retry when the endpoint is found again
@@ -109,15 +113,23 @@ class NearbyTransport(context: Context) {
         override fun onEndpointLost(id: String) = Unit
     }
 
-    fun connect(myId: String, peerId: String, advertise: Boolean, listener: Listener) {
+    /**
+     * @param fast true = Nearby may switch Wi-Fi to a direct link for the best speed (DISRUPTIVE;
+     *   internet can drop during the transfer). false = BALANCED.
+     */
+    fun connect(myId: String, peerId: String, advertise: Boolean, fast: Boolean, listener: Listener) {
         close()
         this.listener = listener
         myName = myId
         peerName = peerId
         requested = false
-        TapLog.i("Nearby: ${if (advertise) "advertising" else "discovering"} for $peerId")
+        connectionType = if (fast) ConnectionType.DISRUPTIVE else ConnectionType.BALANCED
+        TapLog.i("Nearby: ${if (advertise) "advertising" else "discovering"} for $peerId (fast=$fast)")
         if (advertise) {
-            val options = AdvertisingOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()
+            val options = AdvertisingOptions.Builder()
+                .setStrategy(Strategy.P2P_POINT_TO_POINT)
+                .setConnectionType(connectionType)
+                .build()
             client.startAdvertising(myId, SERVICE_ID, lifecycle, options).addOnFailureListener(::onTaskFailure)
         } else {
             val options = DiscoveryOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()

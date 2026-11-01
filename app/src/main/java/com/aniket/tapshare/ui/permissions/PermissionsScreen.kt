@@ -90,8 +90,8 @@ fun PermissionsScreen(
 ) {
     val colors = TapShareTheme.colors
     val type = TapShareTheme.type
-    val required = summary.groups.filter { it.group.required }
-    val optional = summary.groups.filterNot { it.group.required }
+    val required = summary.onboardingGroups.filter { it.group.required }
+    val optional = summary.onboardingGroups.filterNot { it.group.required }
 
     Box(Modifier.fillMaxSize().background(colors.groupedBackground)) {
         Column(
@@ -170,6 +170,13 @@ private fun PermissionRow(
             stringResource(
                 if (sdk <= 30) R.string.permission_location_body_android10 else R.string.permission_location_body_android12,
             ),
+            R.drawable.ic_location,
+            colors.accent,
+        )
+        // Never shown here (asked from Home → "When TapShare is closed"); kept for a complete `when`.
+        PermissionGroup.BACKGROUND_LOCATION -> RowContent(
+            stringResource(R.string.background_location_title),
+            stringResource(R.string.background_location_body),
             R.drawable.ic_location,
             colors.accent,
         )

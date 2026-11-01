@@ -22,7 +22,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aniket.tapshare.appContainer
 import com.aniket.tapshare.session.SessionState
-import com.aniket.tapshare.ui.animation.TapRippleHost
+import com.aniket.tapshare.session.LinkStatus
+import com.aniket.tapshare.ui.animation.EdgeGlowHost
+import com.aniket.tapshare.ui.animation.GlowMode
+import com.aniket.tapshare.ui.session.ConnectionPill
 import com.aniket.tapshare.ui.home.HomeRoute
 import com.aniket.tapshare.ui.mycard.MyCardScreen
 import com.aniket.tapshare.ui.nearby.NearbyRoute
@@ -51,9 +54,11 @@ fun TapShareRoot() {
         outbox.isNotEmpty() -> Screen.SEND
         else -> Screen.HOME
     }
-    val tapTrigger = (session as? SessionState.Touching)?.startedAtMs ?: 0L
+    val link by container.session.link.collectAsStateWithLifecycle()
+    val glowMode = glowModeFor(session, link)
+    val pulseKey = (link as? LinkStatus.Connected)?.since ?: 0L
 
-    TapRippleHost(trigger = tapTrigger) {
+    Box(Modifier.fillMaxSize()) {
         AnimatedContent(
             targetState = screen,
             transitionSpec = {
@@ -84,5 +89,21 @@ fun TapShareRoot() {
             }
         }
         Box(Modifier.fillMaxSize()) { SessionOverlay() }
+        // Rainbow edge glow above everything, then the connection pill on top.
+        EdgeGlowHost(glowMode, pulseKey)
+        ConnectionPill(link)
     }
+}
+
+/**
+ * Glow while something is happening: bright when the phones touch; soft while connecting,
+ * waiting for the other person, or transferring. Off on the poster choice and result screens.
+ */
+private fun glowModeFor(session: SessionState, link: LinkStatus): GlowMode = when (session) {
+    is SessionState.Touching -> GlowMode.TAP
+    is SessionState.Sending -> GlowMode.WORKING
+    is SessionState.Incoming -> if (session.accepted) GlowMode.WORKING else GlowMode.OFF
+    is SessionState.ContactExchange ->
+        if (session.myChoice != null || link == LinkStatus.Connecting) GlowMode.WORKING else GlowMode.OFF
+    else -> GlowMode.OFF
 }

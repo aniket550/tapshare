@@ -34,8 +34,9 @@ class BleAdvertiser(
             ?: return onStatus(RadioStatus.Failed(RadioFailure.NOT_SUPPORTED))
 
         val settings = AdvertiseSettings.Builder()
-            // ~10 adverts/s while the app is open (live numbers), ~1/s in the background (battery).
-            .setAdvertiseMode(if (fast) AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY else AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
+            // ~10 adverts/s while fast (app open / short burst), ~4/s otherwise — 1/s (LOW_POWER) made
+            // taps with the app closed take several seconds. Only while the screen is on and unlocked.
+            .setAdvertiseMode(if (fast) AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY else AdvertiseSettings.ADVERTISE_MODE_BALANCED)
             .setTxPowerLevel(txPower.androidLevel)
             .setConnectable(false)
             .setTimeout(0)

@@ -13,6 +13,13 @@ enum class PermissionGroup(val required: Boolean) {
 
     /** Foreground-service notification. The service still runs if the user says no. */
     NOTIFICATIONS(required = false),
+
+    /**
+     * Android 10–11 only: BLE scan results while TapShare is closed need "Allow all the time".
+     * Asked separately (Home → "When TapShare is closed"), never in the first-run screen —
+     * Android rejects it in the same request as foreground location.
+     */
+    BACKGROUND_LOCATION(required = false),
 }
 
 /** Every runtime permission TapShare may ask for, and the Android versions where it applies. */
@@ -33,6 +40,8 @@ enum class AppPermission(
     ACCESS_LOCAL_NETWORK("android.permission.ACCESS_LOCAL_NETWORK", 37..Int.MAX_VALUE, PermissionGroup.NEARBY_DEVICES),
 
     POST_NOTIFICATIONS("android.permission.POST_NOTIFICATIONS", 33..Int.MAX_VALUE, PermissionGroup.NOTIFICATIONS),
+
+    BACKGROUND_LOCATION("android.permission.ACCESS_BACKGROUND_LOCATION", 29..30, PermissionGroup.BACKGROUND_LOCATION),
 }
 
 /** What the UI can do about a permission (or a whole group). Ordered from best to worst. */
@@ -57,9 +66,14 @@ data class PermissionSummary(val groups: List<GroupStatus>) {
     val allRequiredGranted: Boolean
         get() = groups.filter { it.group.required }.all { it.state == GrantState.GRANTED }
 
-    /** Everything we can still show a system dialog for (required + optional). */
+    /** Everything the first-run screen can still ask for (background location is asked elsewhere). */
     val requestable: List<AppPermission>
-        get() = groups.filter { it.state == GrantState.CAN_REQUEST }.flatMap { it.missing }
+        get() = groups.filter { it.state == GrantState.CAN_REQUEST && it.group != PermissionGroup.BACKGROUND_LOCATION }
+            .flatMap { it.missing }
+
+    /** Groups shown on the first-run permission screen. */
+    val onboardingGroups: List<GroupStatus>
+        get() = groups.filter { it.group != PermissionGroup.BACKGROUND_LOCATION }
 
     val anyRequiredBlocked: Boolean
         get() = groups.any { it.group.required && it.state == GrantState.BLOCKED }

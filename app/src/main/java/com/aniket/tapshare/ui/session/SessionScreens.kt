@@ -91,7 +91,7 @@ private val PosterGradient = Brush.verticalGradient(listOf(Color(0xFF2F8BFF), Co
 
 /**
  * Full-screen session UI on top of everything. Nothing is shown while Idle or during the glow
- * (the glow itself is drawn by TapRippleHost over the current screen).
+ * (the glow itself is drawn by EdgeGlowHost over the current screen).
  */
 @Composable
 fun SessionOverlay() {

@@ -1,10 +1,12 @@
 package com.aniket.tapshare.session
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import com.aniket.tapshare.data.MyCardStore
+import com.aniket.tapshare.data.SettingsStore
 import com.aniket.tapshare.discovery.DiscoveryEngine
 import com.aniket.tapshare.discovery.DiscoveryEvent
 import com.aniket.tapshare.handshake.ContactCard
@@ -15,8 +17,11 @@ import com.aniket.tapshare.handshake.SessionMode
 import com.aniket.tapshare.handshake.iAmAdvertiser
 import com.aniket.tapshare.share.Outbox
 import com.aniket.tapshare.share.OutgoingItem
+import com.aniket.tapshare.share.PhotoShrinker
 import com.aniket.tapshare.transfer.NearbyTransport
 import com.aniket.tapshare.transfer.ReceivedFileSaver
+import com.aniket.tapshare.ui.MainActivity
+import com.aniket.tapshare.ui.animation.GlowOverlay
 import com.aniket.tapshare.ui.animation.Haptics
 import com.aniket.tapshare.util.TapLog
 import com.google.android.gms.common.ConnectionResult
@@ -25,6 +30,8 @@ import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import com.google.android.gms.nearby.connection.Payload
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,11 +59,20 @@ class SessionManager(
     private val myCard: MyCardStore,
     private val outbox: Outbox,
     private val haptics: Haptics,
+    private val settings: SettingsStore,
+    private val overlay: GlowOverlay,
 ) {
     private val _state = MutableStateFlow<SessionState>(SessionState.Idle)
     val state: StateFlow<SessionState> = _state.asStateFlow()
 
     private val transport = NearbyTransport(context)
+
+    private val _link = MutableStateFlow<LinkStatus>(LinkStatus.None)
+    val link: StateFlow<LinkStatus> = _link.asStateFlow()
+    private var linkClearJob: Job? = null
+
+    /** Photos shrunk (if "Send smaller photos" is on) while the phones connect. */
+    private var preparedItems: Deferred<List<OutgoingItem>>? = null
 
     // --- per-session data (reset in begin()) ---
     private var peerId: String? = null
@@ -101,16 +117,29 @@ class SessionManager(
 
     fun setForeground(visible: Boolean) {
         foreground = visible
-        discovery.setTapsEnabled(visible && _state.value == SessionState.Idle)
+        refreshTaps()
     }
+
+    /** Call when "work when app is closed" or the overlay permission changes. */
+    fun refreshTaps() {
+        discovery.setTapsEnabled((foreground || backgroundAllowed()) && _state.value == SessionState.Idle)
+    }
+
+    /** App closed: allowed only with the setting on and "Display over other apps" granted. */
+    private fun backgroundAllowed(): Boolean = settings.backgroundEnabled.value && overlay.isAllowed()
 
     // ================================================================ start / glow
 
     private fun onTap(tappedPeer: String) {
         if (_state.value != SessionState.Idle) return
         if (!foreground) {
-            discovery.endSession() // v1: app must be open; don't keep advertising "triggered"
-            return
+            if (!backgroundAllowed()) {
+                discovery.endSession() // can't show anything: don't keep advertising "triggered"
+                return
+            }
+            // App closed: glow over whatever is on screen, then bring TapShare up for the poster.
+            overlay.show()
+            openApp()
         }
         begin(tappedPeer)
     }
@@ -124,10 +153,17 @@ class SessionManager(
         discovery.setTapsEnabled(false)
         haptics.tap()
         _state.value = SessionState.Touching(mode, SystemClock.elapsedRealtime())
+        setLink(LinkStatus.Connecting)
         TapLog.i("Session: start ($mode) with ${tappedPeer.take(8)}")
+        val original = sendingItems
+        preparedItems = if (mode == SessionMode.SEND) {
+            scope.async { PhotoShrinker.prepare(context, original, settings.smallerPhotos.value) }
+        } else {
+            null
+        }
 
         val myId = discovery.myId
-        transport.connect(myId, tappedPeer, iAmAdvertiser(myId, tappedPeer), transportListener)
+        transport.connect(myId, tappedPeer, iAmAdvertiser(myId, tappedPeer), settings.fastTransfer.value, transportListener)
 
         timeoutJob = scope.launch {
             delay(CONNECT_TIMEOUT_MS)
@@ -187,7 +223,9 @@ class SessionManager(
             connected = true
             timeoutJob?.cancel()
             haptics.connected()
+            setLink(LinkStatus.Connected(peer, SystemClock.elapsedRealtime()))
             scope.launch {
+                preparedItems?.let { sendingItems = it.await() }
                 val hello = SessionMessage.Hello(
                     name = myCard.card.value.name.trim().ifEmpty { android.os.Build.MODEL },
                     avatarJpeg = myCard.photoJpeg(MyCardStore.AVATAR_PX, MyCardStore.AVATAR_MAX_BYTES),
@@ -241,6 +279,7 @@ class SessionManager(
             is SessionMessage.Hello -> {
                 peerHello = message
                 peer = PeerInfo(message.name, message.avatarJpeg)
+                (_link.value as? LinkStatus.Connected)?.let { setLink(it.copy(peer = peer)) }
                 TapLog.i("Session: hello from ${message.name} (${message.mode}, ${message.items.size} items)")
                 refreshAfterGlow()
             }
@@ -455,6 +494,7 @@ class SessionManager(
             else -> haptics.connected()
         }
         TapLog.i("Session: finished $outcome")
+        PhotoShrinker.cleanup(context)
         _state.value = SessionState.Finished(
             outcome = outcome,
             peerName = peer?.name,
@@ -472,6 +512,9 @@ class SessionManager(
         TapLog.w("Session: failed $reason code=$code")
         outgoing.values.forEach { runCatching { it.pfd.close() } }
         transport.close()
+        PhotoShrinker.cleanup(context)
+        // Never connected → the error screen says it all; connected → "Connection lost" pill.
+        setLink(if (connected) LinkStatus.Disconnected(peer?.name, lost = true) else LinkStatus.None)
         glowDone = true
         discovery.release()
         discovery.endSession()
@@ -486,6 +529,7 @@ class SessionManager(
         closeJob = scope.launch {
             delay(CLOSE_DELAY_MS)
             transport.close()
+            if (_link.value is LinkStatus.Connected) setLink(LinkStatus.Disconnected(peer?.name, lost = false))
         }
     }
 
@@ -493,10 +537,16 @@ class SessionManager(
         timeoutJob?.cancel()
         glowJob?.cancel()
         outgoing.values.forEach { runCatching { it.pfd.close() } }
+        PhotoShrinker.cleanup(context)
         discovery.release()
         discovery.endSession()
         _state.value = SessionState.Idle
-        discovery.setTapsEnabled(foreground)
+        when (_link.value) {
+            is LinkStatus.Connected -> setLink(LinkStatus.Disconnected(peer?.name, lost = false))
+            LinkStatus.Connecting -> setLink(LinkStatus.None)
+            else -> Unit
+        }
+        refreshTaps()
     }
 
     private fun isOver(): Boolean = _state.value.let {
@@ -518,7 +568,32 @@ class SessionManager(
         transport.send(bytes)
     }
 
+    private fun setLink(status: LinkStatus) {
+        linkClearJob?.cancel()
+        _link.value = status
+        if (status is LinkStatus.Disconnected) {
+            linkClearJob = scope.launch {
+                delay(LINK_GONE_MS)
+                _link.value = LinkStatus.None
+            }
+        }
+    }
+
+    /** Brings TapShare to the front from the background (allowed: we hold "Display over other apps"). */
+    private fun openApp() {
+        val intent = Intent(context, MainActivity::class.java).addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT,
+        )
+        try {
+            context.startActivity(intent)
+        } catch (e: RuntimeException) {
+            TapLog.w("Session: couldn't open TapShare from the background", e)
+        }
+    }
+
     private fun resetSessionData() {
+        preparedItems?.cancel()
+        preparedItems = null
         peerId = null
         glowDone = false
         connected = false
@@ -563,5 +638,6 @@ class SessionManager(
         const val GLOW_MS = 950L
         const val CONNECT_TIMEOUT_MS = 20_000L
         const val CLOSE_DELAY_MS = 2_000L
+        const val LINK_GONE_MS = 3_500L
     }
 }

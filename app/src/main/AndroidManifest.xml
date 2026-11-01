@@ -52,6 +52,18 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
+    <!-- Android 10–11: BLE scanning while TapShare is closed needs "Allow all the time". -->
+    <uses-permission
+        android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <!-- Work when the app is closed: draw the glow over other apps and open TapShare on a tap
+         ("Display over other apps", granted by the user in Settings). -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Start the ready service again after a reboot / app update (if the user enabled it). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Strong "tap" haptic, connect and done haptics. Normal permission (granted at install). -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -87,6 +99,15 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.TapShareService"

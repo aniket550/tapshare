@@ -102,4 +102,29 @@
     <string name="tap_footer">Path loss = how much signal is lost between the phones. Lower means closer. Tap Calibrate while the two phones touch top-to-top.</string>
     <string name="nearby_peer_loss">loss %1$d dB</string>
     <string name="nearby_peer_sees_me">sees this phone ✓</string>
+    <!-- Connection pill -->
+    <string name="pill_connecting">Connecting…</string>
+    <string name="pill_connected">Connected</string>
+    <string name="pill_connected_to">Connected · %1$s</string>
+    <string name="pill_disconnected">Disconnected</string>
+    <string name="pill_lost">Connection lost</string>
+
+    <!-- Transfer speed -->
+    <string name="speed_section">Transfer speed</string>
+    <string name="speed_fast">Fast mode</string>
+    <string name="speed_fast_body">Uses a direct Wi-Fi link between the phones. Internet may pause during a transfer.</string>
+    <string name="speed_wifi_off">Wi-Fi is off — fast mode needs it</string>
+    <string name="speed_turn_on_wifi">Turn On</string>
+    <string name="speed_smaller">Send smaller photos</string>
+    <string name="speed_smaller_body">Resizes photos before sending (like chat apps). Much faster, slightly lower quality.</string>
+    <string name="speed_footer">Keep Wi-Fi on on both phones for the best speed. Videos and other files are always sent as they are.</string>
+
+    <!-- Background -->
+    <string name="bg_section">When TapShare is closed</string>
+    <string name="bg_toggle">Share when app is closed</string>
+    <string name="bg_overlay_title">Display over other apps</string>
+    <string name="bg_overlay_body">Lets TapShare show the glow and open itself when phones touch, from any screen.</string>
+    <string name="bg_footer">Works while the screen is on and unlocked. TapShare listens quietly and speeds up only when another phone comes near, to save battery.</string>
+    <string name="background_location_title">Location: Allow all the time</string>
+    <string name="background_location_body">Android 10 and 11 need this to find phones while TapShare is closed. TapShare never reads where you are.</string>
 </resources>
