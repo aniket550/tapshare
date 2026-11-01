@@ -43,6 +43,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // App visible → fast adverts/scans so the numbers on screen are live.
+        appContainer.discovery.setForeground(true)
+    }
+
+    override fun onStop() {
+        appContainer.discovery.setForeground(false)
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         // Permissions can change in Settings while we were away; there is no callback for that.

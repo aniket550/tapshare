@@ -24,7 +24,7 @@
 
     <!-- Home: readiness card -->
     <string name="ready_title">All set</string>
-    <string name="ready_body">TapShare is running. Finding nearby phones arrives in the next update.</string>
+    <string name="ready_body">TapShare is looking for other phones. Open Nearby Phones below to see them. Tap-to-share comes in the next update.</string>
     <string name="paused_title">Paused</string>
     <string name="paused_screen_off_body">TapShare rests while your screen is off to save battery.</string>
     <string name="paused_locked_body">Unlock your phone to share.</string>
@@ -58,8 +58,48 @@
     <string name="status_not_available">Not available</string>
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
+    <string name="section_developer">Developer</string>
+    <string name="nearby_row">Nearby Phones</string>
+    <string name="nearby_row_count">%1$d found</string>
+    <string name="nearby_row_off">Off</string>
     <string name="section_about">About</string>
     <string name="about_version">Version</string>
+
+    <!-- Nearby Phones (debug / calibration) screen -->
+    <string name="nearby_title">Nearby Phones</string>
+    <string name="back">Back</string>
+    <string name="nearby_section_this_phone">This phone</string>
+    <string name="nearby_my_id">Random ID</string>
+    <string name="nearby_my_id_footer">Only this random ID is sent over Bluetooth. It changes every 15 minutes. Your name and number are never sent.</string>
+    <string name="nearby_sending">Sending signal</string>
+    <string name="nearby_listening">Listening</string>
+    <string name="nearby_mode_fast">On · fast</string>
+    <string name="nearby_mode_low_power">On · low power</string>
+    <string name="radio_off">Off</string>
+    <string name="radio_starting">Starting…</string>
+    <string name="radio_not_supported">Not supported</string>
+    <string name="radio_bluetooth_off">Bluetooth off</string>
+    <string name="radio_no_permission">No permission</string>
+    <string name="radio_busy">Busy (other apps)</string>
+    <string name="radio_too_frequent">Paused by Android</string>
+    <string name="radio_error">Error</string>
+    <string name="nearby_not_supported_footer">This phone's Bluetooth chip can't send TapShare signals. It can still find other phones, but they can't find it.</string>
+    <string name="nearby_section_power">Signal strength</string>
+    <string name="tx_ultra_low">Ultra low</string>
+    <string name="tx_low">Low</string>
+    <string name="tx_medium">Medium</string>
+    <string name="tx_high">High</string>
+    <string name="nearby_power_footer">Lower strength means the other phone must be closer to hear this one — good for detecting a tap. Use the same setting on both phones while comparing numbers.</string>
+    <string name="nearby_section_found">TapShare phones around you</string>
+    <string name="nearby_searching_title">Looking for other phones…</string>
+    <string name="nearby_searching_body">Open TapShare on another phone with sharing on, and keep both screens unlocked.</string>
+    <string name="nearby_not_running_title">Not looking right now</string>
+    <string name="nearby_peer_title">Phone %1$s</string>
+    <string name="nearby_peer_stats">avg %1$d · min %2$d · max %3$d · %4$.1f/s</string>
+    <string name="nearby_peer_seen">seen %1$.1f s ago</string>
+    <string name="nearby_dbm">%1$d dBm</string>
+    <string name="nearby_found_footer">Closer phones have bigger numbers (−40 is closer than −70). Hold the phones together top-to-top, then back-to-back, and write down the numbers. Tap Reset Numbers between tries.</string>
+    <string name="nearby_reset">Reset Numbers</string>
 
     <!-- Foreground service notification -->
     <string name="notification_channel_name">Ready to share</string>

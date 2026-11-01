@@ -19,9 +19,8 @@ import kotlinx.coroutines.launch
 /**
  * Foreground service (type connectedDevice) that keeps TapShare alive while sharing is on.
  *
- * Phase 0: it only watches [Readiness] and keeps the notification up to date.
- * Phase 1 plugs BLE advertise + scan into [onReadinessChanged]: radios run only in
- * [Readiness.Ready] (screen on + unlocked + Bluetooth on), and stop in every other state.
+ * It watches [Readiness]: BLE discovery runs only in [Readiness.Ready]
+ * (sharing on + screen on + unlocked + Bluetooth on) and stops in every other state.
  */
 class TapShareService : Service() {
 
@@ -93,11 +92,14 @@ class TapShareService : Service() {
     private fun onReadinessChanged(readiness: Readiness, bluetooth: BluetoothStatus) {
         val radiosOn = readiness == Readiness.Ready
         TapLog.i("Service: readiness=$readiness bluetooth=$bluetooth radios=${if (radiosOn) "ON" else "OFF"}")
+        val discovery = appContainer.discovery
+        if (radiosOn) discovery.start() else discovery.stop()
         notifications.update(notifications.build(readiness, bluetooth))
     }
 
     override fun onDestroy() {
         scope.cancel()
+        appContainer.discovery.stop()
         appContainer.setServiceRunning(false)
         TapLog.i("Service: stopped")
         super.onDestroy()

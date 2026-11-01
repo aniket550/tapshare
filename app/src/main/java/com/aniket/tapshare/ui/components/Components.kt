@@ -94,6 +94,7 @@ fun GroupedSection(
 fun GroupedRow(
     title: String,
     modifier: Modifier = Modifier,
+    titleColor: Color = TapShareTheme.colors.label,
     subtitle: String? = null,
     icon: Painter? = null,
     iconBackground: Color = TapShareTheme.colors.accent,
@@ -129,7 +130,7 @@ fun GroupedRow(
                 Spacer(Modifier.width(12.dp))
             }
             Column(Modifier.weight(1f)) {
-                Text(title, style = type.body, color = colors.label)
+                Text(title, style = type.body, color = titleColor)
                 if (subtitle != null) {
                     Text(
                         subtitle,

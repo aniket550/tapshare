@@ -66,12 +66,13 @@ import com.aniket.tapshare.util.TapLog
 
 /** Wires Home to live state and system actions. */
 @Composable
-fun HomeRoute() {
+fun HomeRoute(onOpenNearby: () -> Unit) {
     val context = LocalContext.current
     val container = context.appContainer
     val conditions by container.conditions.conditions.collectAsStateWithLifecycle()
     val serviceRunning by container.serviceRunning.collectAsStateWithLifecycle()
     val notificationsOn by container.permissions.notificationsEnabled.collectAsStateWithLifecycle()
+    val discovery by container.discovery.state.collectAsStateWithLifecycle()
 
     val enableBluetooth = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         // Nothing to do: the Bluetooth state receiver updates the screen by itself.
@@ -101,6 +102,8 @@ fun HomeRoute() {
         onTurnOnBluetooth = onTurnOnBluetooth,
         onOpenLocationSettings = { SystemScreens.location(context) },
         onOpenNotificationSettings = { SystemScreens.appNotifications(context) },
+        nearbyCount = if (discovery.running) discovery.peers.size else null,
+        onOpenNearby = onOpenNearby,
     )
 }
 
@@ -113,6 +116,9 @@ fun HomeScreen(
     onTurnOnBluetooth: () -> Unit,
     onOpenLocationSettings: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
+    /** null = discovery not running. */
+    nearbyCount: Int?,
+    onOpenNearby: () -> Unit,
 ) {
     val colors = TapShareTheme.colors
     val type = TapShareTheme.type
@@ -202,6 +208,25 @@ fun HomeScreen(
                 iconBackground = colors.green,
             ) {
                 TrailingValue(stringResource(if (serviceRunning) R.string.status_running else R.string.status_stopped))
+            }
+        }
+
+        Spacer(Modifier.height(28.dp))
+        GroupedSection(header = stringResource(R.string.section_developer)) {
+            GroupedRow(
+                title = stringResource(R.string.nearby_row),
+                icon = painterResource(R.drawable.ic_nearby),
+                iconBackground = colors.orange,
+                onClick = onOpenNearby,
+            ) {
+                TrailingValue(
+                    if (nearbyCount == null) {
+                        stringResource(R.string.nearby_row_off)
+                    } else {
+                        stringResource(R.string.nearby_row_count, nearbyCount)
+                    },
+                    showChevron = true,
+                )
             }
         }
 

@@ -98,6 +98,8 @@ Rule: discovery, handshake and transfer must stay separate, so the transfer meth
 ---
 
 ## Build phases (do in order, one at a time)
+Status: Phase 0 ✅ tested by Aniket (2026-11-01). Phase 1 built — waiting for his RSSI table (README).
+APK: every push to `main` → GitHub Actions → https://github.com/aniket550/tapshare/releases/tag/latest
 Finish and test each phase on two real phones before starting the next.
 
 - **Phase 0 — Research + skeleton**: research notes in `docs/research/` (NameDrop flow, animation timings, haptics). Compose app, permission screen, empty foreground service with notification.

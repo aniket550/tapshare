@@ -2,6 +2,7 @@ package com.aniket.tapshare.data
 
 import android.content.Context
 import androidx.core.content.edit
+import com.aniket.tapshare.discovery.TxPower
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,18 @@ class SettingsStore(context: Context) {
         _sharingEnabled.value = enabled
     }
 
+    private val _txPower = MutableStateFlow(
+        prefs.getString(KEY_TX_POWER, null)?.let { name -> TxPower.entries.firstOrNull { it.name == name } } ?: TxPower.LOW,
+    )
+
+    /** Advert strength (Nearby Phones screen). LOW by default: "close" should really mean close. */
+    val txPower: StateFlow<TxPower> = _txPower.asStateFlow()
+
+    fun setTxPower(txPower: TxPower) {
+        prefs.edit { putString(KEY_TX_POWER, txPower.name) }
+        _txPower.value = txPower
+    }
+
     /** Needed to tell "never asked" apart from "denied for good" (Android has no direct API). */
     fun wasPermissionAsked(permission: String): Boolean =
         prefs.getStringSet(KEY_ASKED_PERMISSIONS, emptySet())!!.contains(permission)
@@ -31,5 +44,6 @@ class SettingsStore(context: Context) {
     private companion object {
         const val KEY_SHARING_ENABLED = "sharing_enabled"
         const val KEY_ASKED_PERMISSIONS = "asked_permissions"
+        const val KEY_TX_POWER = "tx_power"
     }
 }
