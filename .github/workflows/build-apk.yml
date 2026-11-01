@@ -33,7 +33,7 @@ jobs:
       - name: Install Android SDK platform 37
         run: |
           set +o pipefail
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-37" | tail -n 5
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-37.0" | tail -n 5
           echo "Installed platforms:"; ls "$ANDROID_HOME/platforms"
 
       - name: Unit tests

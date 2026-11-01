@@ -83,7 +83,7 @@
     <string name="radio_busy">Busy (other apps)</string>
     <string name="radio_too_frequent">Paused by Android</string>
     <string name="radio_error">Error</string>
-    <string name="nearby_not_supported_footer">This phone's Bluetooth chip can't send TapShare signals. It can still find other phones, but they can't find it.</string>
+    <string name="nearby_not_supported_footer">This phone\'s Bluetooth chip can\'t send TapShare signals. It can still find other phones, but they can\'t find it.</string>
     <string name="nearby_section_power">Signal strength</string>
     <string name="tx_ultra_low">Ultra low</string>
     <string name="tx_low">Low</string>
