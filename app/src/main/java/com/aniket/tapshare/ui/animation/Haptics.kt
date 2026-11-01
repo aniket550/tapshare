@@ -1,5 +1,6 @@
 package com.aniket.tapshare.ui.animation
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
@@ -45,6 +46,9 @@ class Haptics(context: Context) {
         fallbackMs = 60,
     )
 
+    // Every id passed in comes from VibrationEffect.Composition.PRIMITIVE_* in this class (lint can't
+    // follow constants through a List, hence the suppression).
+    @SuppressLint("WrongConstant")
     private fun play(primitives: List<Pair<Int, Float>>, fallbackMs: Long) {
         val v = vibrator ?: return
         if (!v.hasVibrator()) return

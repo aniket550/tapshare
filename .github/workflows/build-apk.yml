@@ -42,8 +42,8 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Lint (report only)
-        continue-on-error: true
+      # Lint errors fail the build (warnings don't), so a broken APK is never published.
+      - name: Lint
         run: ./gradlew lintDebug
 
       - name: Name the APK
