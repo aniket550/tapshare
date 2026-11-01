@@ -29,8 +29,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       # The runner ships an Android SDK with licences accepted; make sure API 37 is there.
+      # `yes` gets SIGPIPE when sdkmanager exits; with the default pipefail that would fail the step.
       - name: Install Android SDK platform 37
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" > /dev/null
+        run: |
+          set +o pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-37" | tail -n 5
+          echo "Installed platforms:"; ls "$ANDROID_HOME/platforms"
 
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
