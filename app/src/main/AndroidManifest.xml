@@ -52,6 +52,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
+    <!-- Strong "tap" haptic, connect and done haptics. Normal permission (granted at install). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- Android 13+: show the "ready" notification. Optional for the user. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -71,6 +74,17 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Appear in the system share sheet for photos, videos and any file. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
 

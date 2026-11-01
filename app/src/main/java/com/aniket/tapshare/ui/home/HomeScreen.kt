@@ -33,7 +33,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.sp
+import com.aniket.tapshare.data.MyCard
+import com.aniket.tapshare.ui.components.Avatar
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -66,13 +82,29 @@ import com.aniket.tapshare.util.TapLog
 
 /** Wires Home to live state and system actions. */
 @Composable
-fun HomeRoute(onOpenNearby: () -> Unit) {
+fun HomeRoute(onOpenNearby: () -> Unit, onOpenMyCard: () -> Unit) {
     val context = LocalContext.current
     val container = context.appContainer
     val conditions by container.conditions.conditions.collectAsStateWithLifecycle()
     val serviceRunning by container.serviceRunning.collectAsStateWithLifecycle()
     val notificationsOn by container.permissions.notificationsEnabled.collectAsStateWithLifecycle()
     val discovery by container.discovery.state.collectAsStateWithLifecycle()
+    val myCard by container.myCard.card.collectAsStateWithLifecycle()
+    val myPhoto by produceState<ImageBitmap?>(null, myCard.photoVersion) {
+        value = container.myCard.photoBitmap()?.asImageBitmap()
+    }
+    val scope = rememberCoroutineScope()
+    val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_PICK)) { uris ->
+        if (uris.isNotEmpty()) scope.launch { container.outbox.set(uris) }
+    }
+    val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.isNotEmpty()) scope.launch { container.outbox.set(uris) }
+    }
+    val readyHint = when {
+        discovery.touchingPeer != null -> stringResource(R.string.home_peer_touching)
+        discovery.peers.isNotEmpty() -> stringResource(R.string.home_peer_nearby, discovery.peers.size)
+        else -> null
+    }
 
     val enableBluetooth = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         // Nothing to do: the Bluetooth state receiver updates the screen by itself.
@@ -104,8 +136,18 @@ fun HomeRoute(onOpenNearby: () -> Unit) {
         onOpenNotificationSettings = { SystemScreens.appNotifications(context) },
         nearbyCount = if (discovery.running) discovery.peers.size else null,
         onOpenNearby = onOpenNearby,
+        myCard = myCard,
+        myPhoto = myPhoto,
+        onOpenMyCard = onOpenMyCard,
+        onSendPhotos = {
+            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+        },
+        onSendFiles = { pickFiles.launch(arrayOf("*/*")) },
+        readyHint = readyHint,
     )
 }
+
+private const val MAX_PICK = 50
 
 @Composable
 fun HomeScreen(
@@ -119,6 +161,13 @@ fun HomeScreen(
     /** null = discovery not running. */
     nearbyCount: Int?,
     onOpenNearby: () -> Unit,
+    myCard: MyCard,
+    myPhoto: ImageBitmap?,
+    onOpenMyCard: () -> Unit,
+    onSendPhotos: () -> Unit,
+    onSendFiles: () -> Unit,
+    /** Live proximity hint shown in the status card when ready. */
+    readyHint: String?,
 ) {
     val colors = TapShareTheme.colors
     val type = TapShareTheme.type
@@ -139,12 +188,70 @@ fun HomeScreen(
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 12.dp),
         )
 
+        // My Card (iOS Settings-style profile row at the top).
+        GroupedSection {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(remember { MutableInteractionSource() }, indication = null, role = Role.Button, onClick = onOpenMyCard)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Avatar(myPhoto, myCard.initials, size = 60.dp)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (myCard.hasName) myCard.name else stringResource(R.string.home_my_card_setup),
+                        style = type.title2.copy(fontSize = 20.sp),
+                        color = colors.label,
+                    )
+                    Text(
+                        if (myCard.hasName) stringResource(R.string.home_my_card) else stringResource(R.string.home_my_card_setup_body),
+                        style = type.footnote,
+                        color = colors.secondaryLabel,
+                    )
+                }
+                Icon(
+                    painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = colors.tertiaryLabel,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+
         StatusCard(
             readiness = readiness,
             bluetooth = conditions.bluetooth,
             onTurnOnBluetooth = onTurnOnBluetooth,
             onOpenLocationSettings = onOpenLocationSettings,
+            readyHint = readyHint,
         )
+
+        Spacer(Modifier.height(28.dp))
+        GroupedSection(
+            header = stringResource(R.string.home_section_send),
+            footer = stringResource(R.string.home_send_footer),
+        ) {
+            GroupedRow(
+                title = stringResource(R.string.home_send_photos),
+                icon = painterResource(R.drawable.ic_photo),
+                iconBackground = colors.green,
+                showDivider = true,
+                onClick = onSendPhotos,
+            ) {
+                TrailingValue("", showChevron = true)
+            }
+            GroupedRow(
+                title = stringResource(R.string.home_send_files),
+                icon = painterResource(R.drawable.ic_file),
+                iconBackground = colors.accent,
+                onClick = onSendFiles,
+            ) {
+                TrailingValue("", showChevron = true)
+            }
+        }
 
         Spacer(Modifier.height(28.dp))
         GroupedSection(
@@ -250,10 +357,12 @@ private fun StatusCard(
     bluetooth: BluetoothStatus,
     onTurnOnBluetooth: () -> Unit,
     onOpenLocationSettings: () -> Unit,
+    readyHint: String?,
 ) {
     val colors = TapShareTheme.colors
     val type = TapShareTheme.type
     val text = readiness.text(bluetooth)
+    val hint = if (readiness == Readiness.Ready) readyHint else null
 
     Column(
         Modifier
@@ -273,14 +382,14 @@ private fun StatusCard(
         )
         Spacer(Modifier.height(20.dp))
         AnimatedContent(
-            targetState = text,
+            targetState = text to hint,
             transitionSpec = { fadeIn(spring(stiffness = 300f)) togetherWith fadeOut(spring(stiffness = 300f)) },
             label = "statusText",
-        ) { t ->
+        ) { (t, h) ->
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(t.title), style = type.title2, color = colors.label, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(6.dp))
-                Text(stringResource(t.body), style = type.subheadline, color = colors.secondaryLabel, textAlign = TextAlign.Center)
+                Text(h ?: stringResource(t.body), style = type.subheadline, color = colors.secondaryLabel, textAlign = TextAlign.Center)
             }
         }
 

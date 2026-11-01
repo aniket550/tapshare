@@ -24,7 +24,7 @@
 
     <!-- Home: readiness card -->
     <string name="ready_title">All set</string>
-    <string name="ready_body">TapShare is looking for other phones. Open Nearby Phones below to see them. Tap-to-share comes in the next update.</string>
+    <string name="ready_body">Hold the top of your phone close to another phone that has TapShare open.</string>
     <string name="paused_title">Paused</string>
     <string name="paused_screen_off_body">TapShare rests while your screen is off to save battery.</string>
     <string name="paused_locked_body">Unlock your phone to share.</string>

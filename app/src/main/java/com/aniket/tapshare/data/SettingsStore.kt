@@ -21,15 +21,25 @@ class SettingsStore(context: Context) {
     }
 
     private val _txPower = MutableStateFlow(
-        prefs.getString(KEY_TX_POWER, null)?.let { name -> TxPower.entries.firstOrNull { it.name == name } } ?: TxPower.LOW,
+        prefs.getString(KEY_TX_POWER, null)?.let { name -> TxPower.entries.firstOrNull { it.name == name } } ?: TxPower.ULTRA_LOW,
     )
 
-    /** Advert strength (Nearby Phones screen). LOW by default: "close" should really mean close. */
+    /** Advert strength (Nearby Phones screen). ULTRA_LOW by default: "close" should really mean close. */
     val txPower: StateFlow<TxPower> = _txPower.asStateFlow()
 
     fun setTxPower(txPower: TxPower) {
         prefs.edit { putString(KEY_TX_POWER, txPower.name) }
         _txPower.value = txPower
+    }
+
+    private val _tapEnterLossDb = MutableStateFlow(prefs.getFloat(KEY_TAP_ENTER_LOSS, 32f).toDouble())
+
+    /** "Touching" threshold in dB of path loss (lower = phones must be closer). Set by calibration. */
+    val tapEnterLossDb: StateFlow<Double> = _tapEnterLossDb.asStateFlow()
+
+    fun setTapEnterLossDb(db: Double) {
+        prefs.edit { putFloat(KEY_TAP_ENTER_LOSS, db.toFloat()) }
+        _tapEnterLossDb.value = db
     }
 
     /** Needed to tell "never asked" apart from "denied for good" (Android has no direct API). */
@@ -45,5 +55,6 @@ class SettingsStore(context: Context) {
         const val KEY_SHARING_ENABLED = "sharing_enabled"
         const val KEY_ASKED_PERMISSIONS = "asked_permissions"
         const val KEY_TX_POWER = "tx_power"
+        const val KEY_TAP_ENTER_LOSS = "tap_enter_loss_db"
     }
 }

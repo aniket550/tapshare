@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aniket.tapshare.R
 import com.aniket.tapshare.appContainer
+import com.aniket.tapshare.discovery.CalibrationStatus
 import com.aniket.tapshare.discovery.DiscoveryProtocol
 import com.aniket.tapshare.discovery.DiscoveryState
 import com.aniket.tapshare.discovery.PeerSnapshot
@@ -75,6 +76,8 @@ fun NearbyRoute(onBack: () -> Unit) {
         onBack = onBack,
         onTxPower = container.discovery::setTxPower,
         onReset = container.discovery::resetStats,
+        onCalibrate = container.discovery::startCalibration,
+        onResetCalibration = container.discovery::resetCalibration,
     )
 }
 
@@ -86,6 +89,8 @@ fun NearbyScreen(
     onBack: () -> Unit,
     onTxPower: (TxPower) -> Unit,
     onReset: () -> Unit,
+    onCalibrate: () -> Unit,
+    onResetCalibration: () -> Unit,
 ) {
     val colors = TapShareTheme.colors
     val type = TapShareTheme.type
@@ -149,6 +154,32 @@ fun NearbyScreen(
                 }
             }
 
+            // ---- Tap sensitivity ----
+            Spacer(Modifier.height(28.dp))
+            GroupedSection(
+                header = stringResource(R.string.tap_section),
+                footer = if (state.calibration == CalibrationStatus.Failed) {
+                    stringResource(R.string.tap_calibrate_failed)
+                } else {
+                    stringResource(R.string.tap_footer)
+                },
+            ) {
+                GroupedRow(title = stringResource(R.string.tap_threshold), showDivider = true) {
+                    TrailingValue(stringResource(R.string.tap_threshold_value, state.tapEnterLossDb.roundToInt()))
+                }
+                GroupedRow(
+                    title = when (val c = state.calibration) {
+                        is CalibrationStatus.Running -> stringResource(R.string.tap_calibrating, c.samples)
+                        is CalibrationStatus.Done -> stringResource(R.string.tap_calibrated, c.enterLossDb.roundToInt())
+                        else -> stringResource(R.string.tap_calibrate)
+                    },
+                    titleColor = colors.accent,
+                    showDivider = true,
+                    onClick = if (state.calibration is CalibrationStatus.Running) null else onCalibrate,
+                )
+                GroupedRow(title = stringResource(R.string.tap_reset), titleColor = colors.accent, onClick = onResetCalibration)
+            }
+
             // ---- Found phones ----
             Spacer(Modifier.height(28.dp))
             GroupedSection(
@@ -169,7 +200,7 @@ fun NearbyScreen(
                         subtitle = stringResource(R.string.nearby_searching_body),
                     )
                     else -> state.peers.forEachIndexed { i, peer ->
-                        PeerRow(peer, showDivider = i < state.peers.lastIndex)
+                        PeerRow(peer, myId = state.myId, showDivider = i < state.peers.lastIndex)
                     }
                 }
             }
@@ -183,7 +214,7 @@ fun NearbyScreen(
 }
 
 @Composable
-private fun PeerRow(peer: PeerSnapshot, showDivider: Boolean) {
+private fun PeerRow(peer: PeerSnapshot, myId: String, showDivider: Boolean) {
     val colors = TapShareTheme.colors
     val type = TapShareTheme.type
     val rssi = peer.smoothedRssi.roundToInt()
@@ -200,7 +231,9 @@ private fun PeerRow(peer: PeerSnapshot, showDivider: Boolean) {
             peer.minRssi,
             peer.maxRssi,
             peer.samplesPerSecond,
-        ) + "\n" + stringResource(R.string.nearby_peer_seen, peer.msSinceLastSeen / 1000.0),
+        ) + "\n" + stringResource(R.string.nearby_peer_loss, peer.pathLoss.roundToInt()) +
+            (if (peer.closeToPrefix == DiscoveryProtocol.prefixOf(myId)) " · " + stringResource(R.string.nearby_peer_sees_me) else "") +
+            " · " + stringResource(R.string.nearby_peer_seen, peer.msSinceLastSeen / 1000.0),
         showDivider = showDivider,
     ) {
         Column(horizontalAlignment = Alignment.End) {

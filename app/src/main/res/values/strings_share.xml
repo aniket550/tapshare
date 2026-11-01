@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="home_peer_nearby">%1$d TapShare phone nearby — bring the tops together</string>
+    <string name="home_peer_touching">Hold them together…</string>
+    <string name="home_my_card">My Card</string>
+    <string name="home_my_card_setup">Set up your card</string>
+    <string name="home_my_card_setup_body">Add your name and photo so others see who you are.</string>
+    <string name="home_section_send">Send</string>
+    <string name="home_send_photos">Photos &amp; Videos</string>
+    <string name="home_send_files">Files</string>
+    <string name="home_send_footer">Pick what to send, then hold your phone close to the other phone. You can also tap Share in Gallery or Files and choose TapShare.</string>
+    <string name="share_nothing_to_send">TapShare can send photos, videos and files.</string>
+
+    <!-- My Card -->
+    <string name="my_card_title">My Card</string>
+    <string name="my_card_add_photo">Add Photo</string>
+    <string name="my_card_change_photo">Change Photo</string>
+    <string name="my_card_remove_photo">Remove Photo</string>
+    <string name="my_card_photo_failed">Couldn\'t use that photo. Try another one.</string>
+    <string name="my_card_section_name">Name</string>
+    <string name="my_card_name_hint">Your name</string>
+    <string name="my_card_section_contact">Contact info</string>
+    <string name="my_card_phone_hint">Phone number</string>
+    <string name="my_card_email_hint">Email</string>
+    <string name="my_card_section_share">When I tap Share, also send</string>
+    <string name="my_card_share_phone">Phone number</string>
+    <string name="my_card_share_email">Email</string>
+    <string name="my_card_share_footer">Your name and photo are always included. Anything switched off here is never sent.</string>
+
+    <!-- Send screen (items queued) -->
+    <string name="send_title_photos">%1$d photos ready</string>
+    <string name="send_title_items">%1$d items ready</string>
+    <string name="send_title_one">1 item ready</string>
+    <string name="send_body">Hold the top of your phone close to another phone that has TapShare open.</string>
+    <string name="send_cancel">Cancel</string>
+    <string name="send_more">+%1$d</string>
+
+    <!-- Contact poster -->
+    <string name="poster_connecting">Connecting…</string>
+    <string name="poster_with">With %1$s</string>
+    <string name="poster_receive_only">Receive Only</string>
+    <string name="poster_share">Share</string>
+    <string name="poster_need_name">Add your name in My Card to share your contact.</string>
+    <string name="poster_waiting">Waiting for %1$s…</string>
+    <string name="poster_waiting_other">Waiting for the other phone…</string>
+    <string name="poster_shared_their">%1$s shared their contact</string>
+    <string name="poster_shared_both">You both shared contacts</string>
+    <string name="poster_save">Save Contact</string>
+    <string name="poster_done">Done</string>
+
+    <!-- Sending / receiving -->
+    <string name="sending_to">Sending to %1$s</string>
+    <string name="sending_connecting">Connecting…</string>
+    <string name="sending_waiting">Waiting for %1$s to accept…</string>
+    <string name="transfer_progress">%1$d of %2$d · %3$s of %4$s</string>
+    <string name="wifi_off_hint">Wi-Fi is off, so this will be slower. Turn on Wi-Fi on both phones for fast transfers.</string>
+    <string name="incoming_wants">wants to share %1$s</string>
+    <string name="incoming_and_more">and %1$d more</string>
+    <string name="incoming_accept">Accept</string>
+    <string name="incoming_decline">Decline</string>
+    <string name="receiving_from">Receiving from %1$s</string>
+    <string name="cancel">Cancel</string>
+    <string name="someone">Someone</string>
+    <plurals name="kind_photos"><item quantity="one">%d photo</item><item quantity="other">%d photos</item></plurals>
+    <plurals name="kind_videos"><item quantity="one">%d video</item><item quantity="other">%d videos</item></plurals>
+    <plurals name="kind_files"><item quantity="one">%d file</item><item quantity="other">%d files</item></plurals>
+    <plurals name="kind_items"><item quantity="one">%d item</item><item quantity="other">%d items</item></plurals>
+
+    <!-- Finished / failed -->
+    <string name="done_sent">Sent to %1$s</string>
+    <string name="done_received">Received from %1$s</string>
+    <string name="done_received_where">Saved to Gallery and Downloads → TapShare</string>
+    <string name="done_card_sent">Your card was sent</string>
+    <string name="done_nothing">Nothing was shared</string>
+    <string name="done_nothing_body">You both chose Receive Only.</string>
+    <string name="done_declined_by_peer">%1$s declined</string>
+    <string name="done_declined_by_me">Declined</string>
+    <string name="done_cancelled">%1$s cancelled</string>
+    <string name="done_open">Open</string>
+    <string name="done_done">Done</string>
+    <string name="failed_title">Couldn\'t share</string>
+    <string name="failed_timeout">The phones couldn\'t connect. Keep TapShare open on both phones and try again.</string>
+    <string name="failed_lost">The connection dropped. Keep the phones near each other and try again.</string>
+    <string name="failed_nearby">Something went wrong in Google Play services (code %1$d). Try again.</string>
+    <string name="failed_unavailable">Google Play services or a permission needed for sharing is missing. Update Play services and check TapShare\'s permissions.</string>
+    <string name="failed_both_sending">Both phones are trying to send. Let one phone send first.</string>
+    <string name="failed_version">The other phone has a different TapShare version. Update TapShare on both phones.</string>
+    <string name="failed_read">One of the files couldn\'t be opened. Pick it again and retry.</string>
+    <string name="failed_save">A file couldn\'t be saved on this phone.</string>
+    <string name="failed_no_space">Not enough storage on this phone.</string>
+
+    <!-- Nearby screen: tap sensitivity -->
+    <string name="tap_section">Tap sensitivity</string>
+    <string name="tap_threshold">Touching below</string>
+    <string name="tap_threshold_value">%1$d dB</string>
+    <string name="tap_calibrate">Calibrate</string>
+    <string name="tap_calibrating">Hold the phones together… (%1$d)</string>
+    <string name="tap_calibrated">Calibrated: %1$d dB</string>
+    <string name="tap_calibrate_failed">Couldn\'t calibrate. Open this screen on both phones and keep them touching for 3 seconds.</string>
+    <string name="tap_reset">Reset to Default</string>
+    <string name="tap_footer">Path loss = how much signal is lost between the phones. Lower means closer. Tap Calibrate while the two phones touch top-to-top.</string>
+    <string name="nearby_peer_loss">loss %1$d dB</string>
+    <string name="nearby_peer_sees_me">sees this phone ✓</string>
+</resources>

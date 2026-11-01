@@ -17,7 +17,13 @@ data class PeerSnapshot(
     val txPower: Int?,
     val samplesPerSecond: Double,
     val msSinceLastSeen: Long,
-)
+    /** Prefix of the phone this peer says it is touching (null = nobody). */
+    val closeToPrefix: String? = null,
+    val flags: Int = 0,
+) {
+    /** TX power − RSSI: comparable between phones with different TX settings. */
+    val pathLoss: Double get() = pathLoss(smoothedRssi, txPower)
+}
 
 /**
  * Keeps live signal numbers for every TapShare phone we hear. Old entries disappear after
@@ -37,17 +43,21 @@ class PeerTable(
         var txPower: Int?,
         var statsSince: Long,
         var lastSeen: Long,
+        var closeTo: String? = null,
+        var flags: Int = 0,
     )
 
     private val entries = LinkedHashMap<String, Entry>()
 
     @Synchronized
-    fun onSample(id: String, rssi: Int, txPower: Int?, nowMs: Long) {
+    fun onSample(id: String, rssi: Int, txPower: Int?, nowMs: Long, closeTo: String? = null, flags: Int = 0) {
         val e = entries[id]
         if (e == null) {
-            entries[id] = Entry(rssi, rssi.toDouble(), rssi, rssi, rssi.toLong(), 1, txPower, nowMs, nowMs)
+            entries[id] = Entry(rssi, rssi.toDouble(), rssi, rssi, rssi.toLong(), 1, txPower, nowMs, nowMs, closeTo, flags)
             return
         }
+        e.closeTo = closeTo
+        e.flags = flags
         e.lastRssi = rssi
         e.smoothed = alpha * rssi + (1 - alpha) * e.smoothed
         e.min = minOf(e.min, rssi)
@@ -81,6 +91,10 @@ class PeerTable(
     @Synchronized
     fun clear() = entries.clear()
 
+    /** Current smoothed RSSI of one phone (null if unknown). */
+    @Synchronized
+    fun smoothedOf(id: String): Double? = entries[id]?.smoothed
+
     /** Strongest (closest) phone first. */
     @Synchronized
     fun snapshot(nowMs: Long): List<PeerSnapshot> = entries
@@ -98,6 +112,8 @@ class PeerTable(
                 txPower = e.txPower,
                 samplesPerSecond = if (e.samples > 1) (e.samples - 1) / seconds else 0.0,
                 msSinceLastSeen = nowMs - e.lastSeen,
+                closeToPrefix = e.closeTo,
+                flags = e.flags,
             )
         }
         .sortedByDescending { it.smoothedRssi }

@@ -24,7 +24,7 @@ class BleAdvertiser(
 
     // Permission is checked at the top (hasPermission); lint can't see through the helper.
     @SuppressLint("MissingPermission")
-    fun start(id: ByteArray, txPower: TxPower, fast: Boolean) {
+    fun start(serviceData: ByteArray, txPower: TxPower, fast: Boolean) {
         stopInternal()
         if (!hasPermission()) return onStatus(RadioStatus.Failed(RadioFailure.NO_PERMISSION))
         val bt = adapter
@@ -46,14 +46,14 @@ class BleAdvertiser(
             .setIncludeDeviceName(false)
             .build()
         val scanResponse = AdvertiseData.Builder()
-            .addServiceData(uuid, id)
+            .addServiceData(uuid, serviceData)
             .setIncludeDeviceName(false)
             .build()
 
         val cb = object : AdvertiseCallback() {
             override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
                 if (callback === this) {
-                    TapLog.i("Advertiser: on (tx=$txPower, fast=$fast, id=${DiscoveryProtocol.idToHex(id)})")
+                    TapLog.i("Advertiser: on (tx=$txPower, fast=$fast, data=${DiscoveryProtocol.idToHex(serviceData)})")
                     onStatus(RadioStatus.On)
                 }
             }

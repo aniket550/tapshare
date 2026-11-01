@@ -7,8 +7,11 @@ package com.aniket.tapshare.discovery
  *
  * Legacy BLE adverts carry at most 31 bytes, so the data is split:
  *  - advert:        flags (3) + our 128-bit service UUID (18) + TX power level (3) = 24 bytes
- *  - scan response: service data = our UUID (16) + random ID (8) + header (2)      = 26 bytes
- * No name, number or email ever goes out — only the random ID, which changes every 15 minutes.
+ *  - scan response: service data = header (2) + UUID (16) + [ID (8), closeTo (4), flags (1)] = 31 bytes
+ *
+ * closeTo = first 4 bytes of the ID of the phone we are touching right now (zeros = nobody).
+ * That is how each phone learns "the other one also sees me close" (mutual tap) without connecting.
+ * No name, number or email ever goes out — only random IDs, which change every 15 minutes.
  */
 object DiscoveryProtocol {
     /** Random v4 UUID that identifies TapShare adverts (generated once for this app). */
@@ -19,11 +22,49 @@ object DiscoveryProtocol {
     /** How long one random ID is used before a new one is made (privacy: can't be tracked for long). */
     const val ID_ROTATION_MS = 15 * 60 * 1000L
 
+    const val PREFIX_BYTES = 4
+
+    /** Flag bit: "I already started a share session with the phone in closeTo". */
+    const val FLAG_TRIGGERED = 0x01
+
     fun idToHex(id: ByteArray): String = id.joinToString("") { "%02X".format(it.toInt() and 0xFF) }
 
+    fun hexToBytes(hex: String): ByteArray =
+        ByteArray(hex.length / 2) { i -> hex.substring(i * 2, i * 2 + 2).toInt(16).toByte() }
+
+    /** First 4 bytes of an ID as hex (8 chars) — what goes into closeTo. */
+    fun prefixOf(hexId: String): String = hexId.take(PREFIX_BYTES * 2)
+
+    /** Service data we put in the scan response. */
+    fun encodeServiceData(id: ByteArray, closeToHexId: String?, flags: Int): ByteArray {
+        val out = ByteArray(ID_BYTES + PREFIX_BYTES + 1)
+        id.copyInto(out, 0, 0, ID_BYTES)
+        if (closeToHexId != null) hexToBytes(prefixOf(closeToHexId)).copyInto(out, ID_BYTES)
+        out[ID_BYTES + PREFIX_BYTES] = flags.toByte()
+        return out
+    }
+
+    data class Parsed(val id: String, val closeToPrefix: String?, val flags: Int)
+
+    /** Accepts the old 8-byte format (ID only) and the full 13-byte one. Null if not TapShare data. */
+    fun parseServiceData(data: ByteArray?): Parsed? {
+        if (data == null) return null
+        return when (data.size) {
+            ID_BYTES -> Parsed(idToHex(data), null, 0)
+            ID_BYTES + PREFIX_BYTES + 1 -> {
+                val prefix = data.copyOfRange(ID_BYTES, ID_BYTES + PREFIX_BYTES)
+                Parsed(
+                    id = idToHex(data.copyOfRange(0, ID_BYTES)),
+                    closeToPrefix = if (prefix.all { it == 0.toByte() }) null else idToHex(prefix),
+                    flags = data[ID_BYTES + PREFIX_BYTES].toInt() and 0xFF,
+                )
+            }
+            else -> null
+        }
+    }
+
     /** Returns null if the bytes are not a valid TapShare ID. */
-    fun parseId(serviceData: ByteArray?): String? =
-        if (serviceData != null && serviceData.size == ID_BYTES) idToHex(serviceData) else null
+    fun parseId(serviceData: ByteArray?): String? = parseServiceData(serviceData)?.id
 
     /** "A1B2C3D4E5F60718" → "A1B2·C3D4" (short and readable on screen). */
     fun shortLabel(hexId: String): String =

@@ -17,7 +17,7 @@ import com.aniket.tapshare.util.TapLog
 /** Listens for TapShare adverts only (filter on our UUID, so the chip can drop everything else). */
 class BleScanner(
     private val context: Context,
-    private val onPeer: (id: String, rssi: Int, txPower: Int?) -> Unit,
+    private val onPeer: (id: String, rssi: Int, txPower: Int?, closeTo: String?, flags: Int) -> Unit,
     private val onStatus: (RadioStatus) -> Unit,
 ) {
     private val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter
@@ -81,11 +81,12 @@ class BleScanner(
         val record = result.scanRecord
         // The ID is in the scan response. If a phone's scan missed it, fall back to the
         // (also randomised) Bluetooth address so the phone still shows up.
-        val id = DiscoveryProtocol.parseId(record?.getServiceData(uuid))
+        val parsed = DiscoveryProtocol.parseServiceData(record?.getServiceData(uuid))
+        val id = parsed?.id
             ?: runCatching { "MAC-" + result.device.address.replace(":", "") }.getOrNull()
             ?: return
         val tx = record?.txPowerLevel?.takeIf { it != Int.MIN_VALUE }
-        onPeer(id, result.rssi, tx)
+        onPeer(id, result.rssi, tx, parsed?.closeToPrefix, parsed?.flags ?: 0)
     }
 
     @SuppressLint("MissingPermission")

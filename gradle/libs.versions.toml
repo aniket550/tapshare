@@ -7,6 +7,7 @@ coreKtx = "1.19.1"
 activityCompose = "1.13.0"
 lifecycle = "2.11.0"
 junit = "4.13.2"
+playServicesNearby = "19.5.1"  # Oct 2026; no desugaring needed since 19.5.0
 
 [libraries]
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -25,6 +26,7 @@ androidx-compose-animation = { group = "androidx.compose.animation", name = "ani
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+play-services-nearby = { group = "com.google.android.gms", name = "play-services-nearby", version.ref = "playServicesNearby" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
