@@ -11,3 +11,5 @@
 .cxx/
 *.keystore
 *.jks
+# Shared DEBUG key only (not secret): lets every CI build install over the previous one.
+!app/debug.keystore

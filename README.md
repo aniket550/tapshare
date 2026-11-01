@@ -6,7 +6,18 @@ iPhone NameDrop / AirDrop jaisa feel, Android pe. (Working name — final naam b
 **Abhi ka status: Phase 0 (skeleton).** App khulta hai, permissions maangta hai, aur background
 service notification ke saath chalti hai. Paas ke phones dhoondhna Phase 1 mein aayega.
 
-## Build kaise karein
+## APK seedha phone pe (sabse aasaan)
+
+Har push pe GitHub Actions khud APK banata hai aur **Releases → latest** pe daal deta hai:
+
+1. Phone ke browser mein kholo: **https://github.com/aniket550/tapshare/releases/tag/latest**
+2. `TapShare-xxxxxxx.apk` pe tap → download
+3. Download khol ke install karo (pehli baar Android "unknown apps" ki permission maangega → Allow)
+4. Nayi build aaye to wahi steps — purani app ke upar install ho jaayegi (same debug key), data bana rahega.
+
+Repo private hai to link kholne ke liye GitHub mein login hona chahiye.
+
+## Build kaise karein (computer pe)
 
 Zaroorat: **Android Studio** (latest stable) ya **JDK 17+** + Android SDK **API 37**.
 

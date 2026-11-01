@@ -15,6 +15,17 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        // Same debug key on every machine (CI included), so a new debug APK installs over the old one.
+        // Debug-only, password is the Android default; NEVER use this key for a store release.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
