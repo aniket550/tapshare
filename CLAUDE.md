@@ -64,7 +64,9 @@ Mapping to iPhone tech:
 - Foreground service, type `connectedDevice`
 - Gradle Kotlin DSL, version catalog (`libs.versions.toml`)
 - Keep dependencies minimal. No Hilt/DI framework unless Aniket agrees — manual DI is fine for this size.
-- **minSdk 29 (Android 10)** — decided 2026-11-01.
+- **minSdk 29 (Android 10)** — decided 2026-11-01. **compileSdk / targetSdk 37** (Compose 1.12 requires compileSdk 37).
+- Toolchain: AGP 9.5.0 (built-in Kotlin — do NOT apply `org.jetbrains.kotlin.android`), Kotlin 2.4.21 via root `buildscript` classpath, Gradle 9.8.2, JDK 17+, Compose BOM 2026.09.00.
+- UI font: Inter (OFL, bundled in `res/font`, licence in `docs/licenses/`). iOS-style components live in `ui/components/Components.kt` — reuse them, don't use Material widgets directly.
 - **Package `com.aniket.tapshare`** (fixed) — decided 2026-11-01. Display name: "TapShare" placeholder, final name later (easy to change).
 - **v1 shares: contact card + photos + any file** — decided 2026-11-01. Build order inside Phase 3: contact (vCard) → photos → any file. Use the system Photo Picker / document picker (no storage permission).
 - Code lives in its own repo (not in `aniket550/aniket550`, which is the English 30 app).
@@ -157,10 +159,15 @@ Record our app and an iPhone doing the same thing, put the videos side by side. 
 - Rely on Nearby Connections' built-in encryption; don't roll custom crypto.
 
 ### Permissions (handle every Android version, minSdk 29)
-- Android 10–11: `ACCESS_FINE_LOCATION` (runtime) + legacy `BLUETOOTH` / `BLUETOOTH_ADMIN` (maxSdk 30) for BLE scan and Nearby.
+- Single source of truth: `util/PermissionPlan.kt` (pure Kotlin, unit-tested). Change permissions there + manifest together.
+- Android 10–12L: `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION` (runtime, maxSdk 32) — BLE scan (≤ 11) and Nearby Wi-Fi scan (≤ 12L). Legacy `BLUETOOTH` / `BLUETOOTH_ADMIN` (maxSdk 30).
 - Android 12+: `BLUETOOTH_SCAN` (with `neverForLocation`), `BLUETOOTH_ADVERTISE`, `BLUETOOTH_CONNECT`
-- Android 13+: `NEARBY_WIFI_DEVICES`, `POST_NOTIFICATIONS`
-- Android 14+: `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_CONNECTED_DEVICE`, service declared with `foregroundServiceType="connectedDevice"`; `BLUETOOTH_CONNECT` must be granted before `startForeground()`.
+- Android 13+: `NEARBY_WIFI_DEVICES` (`neverForLocation`), `POST_NOTIFICATIONS` (optional — app works without it)
+- Android 17+: `ACCESS_LOCAL_NETWORK` (same Nearby devices group, no extra prompt)
+- Android 14+: `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_CONNECTED_DEVICE`, service declared with `foregroundServiceType="connectedDevice"`. Prerequisite is met by the declared `CHANGE_WIFI_STATE`.
+- Start the foreground service **only while our Activity is visible** (`ServiceController.sync`). Android 12+ blocks background starts. Service is `START_NOT_STICKY` until Phase 4.
+- Broadcast receivers for system state use `RECEIVER_EXPORTED` (Bluetooth state comes from a privileged non-system app) and only trigger a re-read of the real value.
+- Open (Phase 4): Android 10/11 need `ACCESS_BACKGROUND_LOCATION` for BLE discovery from a background service — ask Aniket before adding.
 - Photos/files: system Photo Picker / document picker → no storage permission.
 - Full table: `docs/research/android-apis.md`.
 - Explain each permission to the user on the permission screen in plain words.

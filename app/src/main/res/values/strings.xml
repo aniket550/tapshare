@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TapShare</string>
+
+    <!-- Permissions screen -->
+    <string name="permissions_title">Share by bringing phones together</string>
+    <string name="permissions_subtitle">TapShare needs a few permissions to find phones right next to yours and send things to them. Nothing is shared until both people tap Share.</string>
+    <string name="permissions_section_required">Needed</string>
+    <string name="permissions_section_optional">Optional</string>
+    <string name="permissions_privacy_footer">TapShare never puts your name, number or email in its Bluetooth signal. It only sends what you choose, to the person you choose.</string>
+    <string name="permission_nearby_title">Nearby devices</string>
+    <string name="permission_nearby_body">Finds TapShare phones next to yours and sends files straight to them over Bluetooth and Wi-Fi. No internet needed.</string>
+    <string name="permission_location_title">Location</string>
+    <string name="permission_location_body_android10">Android 10 and 11 count Bluetooth scanning as \"location\". TapShare never reads or saves where you are.</string>
+    <string name="permission_location_body_android12">Android 12 counts Wi-Fi scanning as \"location\". TapShare uses Wi-Fi only to send files faster, and never reads or saves where you are.</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_body">Shows a quiet notification while TapShare is ready, so Android keeps it running.</string>
+    <string name="permission_action_allow">Allow</string>
+    <string name="permission_action_settings">Settings</string>
+    <string name="permission_granted">Allowed</string>
+    <string name="permissions_continue">Continue</string>
+    <string name="permissions_open_settings">Open Settings</string>
+    <string name="permissions_blocked_hint">You said no earlier, so Android won\'t ask again. Open Settings → Permissions to allow it.</string>
+
+    <!-- Home: readiness card -->
+    <string name="ready_title">All set</string>
+    <string name="ready_body">TapShare is running. Finding nearby phones arrives in the next update.</string>
+    <string name="paused_title">Paused</string>
+    <string name="paused_screen_off_body">TapShare rests while your screen is off to save battery.</string>
+    <string name="paused_locked_body">Unlock your phone to share.</string>
+    <string name="sharing_off_title">Sharing is off</string>
+    <string name="sharing_off_body">Turn on sharing below so phones next to yours can find you.</string>
+    <string name="bluetooth_off_title">Bluetooth is off</string>
+    <string name="bluetooth_off_body">TapShare needs Bluetooth to find phones next to yours.</string>
+    <string name="bluetooth_turning_on_body">Turning Bluetooth on…</string>
+    <string name="bluetooth_turn_on">Turn On Bluetooth</string>
+    <string name="location_off_title">Location is off</string>
+    <string name="location_off_body">On Android 10 and 11, Bluetooth scanning only works when Location is on. TapShare never uses where you are.</string>
+    <string name="location_turn_on">Open Location Settings</string>
+    <string name="unsupported_title">Bluetooth not available</string>
+    <string name="unsupported_body">This phone doesn\'t support Bluetooth Low Energy, so TapShare can\'t work on it.</string>
+    <string name="permissions_missing_title">Permissions needed</string>
+    <string name="permissions_missing_body">Allow Nearby devices so TapShare can find other phones.</string>
+
+    <!-- Home: sections -->
+    <string name="section_sharing">Sharing</string>
+    <string name="sharing_toggle">Allow Sharing</string>
+    <string name="sharing_footer">When on, TapShare looks for nearby phones only while your screen is on and unlocked. Nothing is sent until both people tap Share.</string>
+    <string name="section_status">Status</string>
+    <string name="status_bluetooth">Bluetooth</string>
+    <string name="status_location">Location</string>
+    <string name="status_notifications">Notifications</string>
+    <string name="status_service">Background service</string>
+    <string name="status_on">On</string>
+    <string name="status_off">Off</string>
+    <string name="status_turning_on">Turning on…</string>
+    <string name="status_turning_off">Turning off…</string>
+    <string name="status_not_available">Not available</string>
+    <string name="status_running">Running</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="section_about">About</string>
+    <string name="about_version">Version</string>
+
+    <!-- Foreground service notification -->
+    <string name="notification_channel_name">Ready to share</string>
+    <string name="notification_channel_description">Shown while TapShare is ready to find nearby phones.</string>
+    <string name="notification_ready_title">Ready to share</string>
+    <string name="notification_paused_title">TapShare is paused</string>
+    <string name="notification_action_turn_off">Turn Off</string>
+</resources>

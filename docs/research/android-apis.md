@@ -83,7 +83,22 @@ distance on new phones and fall back to RSSI on old ones.
 - Built-in encryption; both sides get an auth token/digits on connection — we can show
   or compare them silently as an extra check.
 
-## 6. Build environment note
+## 6. Second pass (2026-11-01, verified on developer.android.com)
+
+| Topic | Finding | What we did |
+|---|---|---|
+| Toolchain | AGP **9.5.0** (needs Gradle ≥ 9.6, JDK 17, max API 37). Compose BOM **2026.09.00** = Compose 1.12 → **requires compileSdk 37 + AGP 9**. Kotlin **2.4.21**. | Gradle wrapper 9.8.2, compileSdk/targetSdk 37 |
+| AGP 9 built-in Kotlin | `org.jetbrains.kotlin.android` must be removed; AGP depends on KGP 2.2.10, newer KGP goes on the root `buildscript` classpath. Compose compiler plugin version = Kotlin version. | Root `buildscript { classpath(kotlin-gradle-plugin) }` |
+| Android 17 local network | New runtime permission `ACCESS_LOCAL_NETWORK` for apps targeting 37, in the **Nearby devices** group (no extra prompt if Bluetooth already allowed). Apps targeting ≤ 36 must NOT declare it. Nearby Connections isn't mentioned in the docs. | Declared + requested on 37+ (costs nothing, avoids surprises) |
+| Location for Nearby | Nearby guide declares `ACCESS_FINE_LOCATION` for 29–31 and `NEARBY_WIFI_DEVICES` from "32" (the platform permission really exists from 33). Wi-Fi scanning needs location until Android 13. | Ask FINE + COARSE on **29–32**, `NEARBY_WIFI_DEVICES` on 33+ |
+| connectedDevice FGS prerequisite | Any one of: manifest `CHANGE_NETWORK_STATE` / `CHANGE_WIFI_STATE` / … **or** runtime `BLUETOOTH_CONNECT` / `ADVERTISE` / `SCAN` / `UWB_RANGING`. No timeout for this type. | We declare `CHANGE_WIFI_STATE` (needed by Nearby anyway) → prerequisite always met |
+| Broadcast receivers | `RECEIVER_NOT_EXPORTED` gets only *some* system broadcasts — **not** ones from privileged non-system-UID apps like **Bluetooth**. | `RECEIVER_EXPORTED`, and receivers only trigger a re-read of the real state (spoof-safe) |
+| Android 10/11 background BLE | A service that scans on Android 10/11 must also declare `ACCESS_BACKGROUND_LOCATION` to discover devices in the background. | **Phase 4 decision** (needs a second, scarier prompt — ask Aniket) |
+| Android 17 others | Large screens ignore orientation locks for target 37; RFCOMM `read()` returns -1 on close; BAL hardening for `IntentSender`. | Layout is fully responsive; we don't use RFCOMM |
+
+Sources (2nd pass): [AGP release notes](https://developer.android.com/build/releases/gradle-plugin) · [AGP 9.0 notes](https://developer.android.com/build/releases/agp-9-0-0-release-notes) · [Built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin) · [Compose compiler](https://developer.android.com/develop/ui/compose/compiler) · [BOM mapping](https://developer.android.com/develop/ui/compose/bom/bom-mapping) · [Android 17 behaviour changes](https://developer.android.com/about/versions/17/behavior-changes-17) · [Local network permission](https://developer.android.com/privacy-and-security/local-network-permission) · [FGS types](https://developer.android.com/develop/background-work/services/fgs/service-types) · [Bluetooth permissions](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions) · [Broadcasts](https://developer.android.com/develop/background-work/background-tasks/broadcasts)
+
+## 7. Build environment note
 
 The cloud build box cannot reach `dl.google.com` (Android SDK + Google Maven), so it
 **cannot run `./gradlew assembleDebug`**. Either allow that host in the environment's
