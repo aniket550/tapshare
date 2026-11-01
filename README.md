@@ -53,6 +53,21 @@ SDK 37 na ho to Studio khud download karne ko bolega.
 
 Kuch bhi alag dikhe → screenshot + `adb logcat -s TapShare` ka output bhejo.
 
+## Naya: glow, connection pill, fast mode, app band hone pe (test karo)
+
+| # | Kya karo | Kya dikhna chahiye |
+|---|---|---|
+| 1 | Phones chhuao (app khula) | Screen ke **chaaron kinaaron pe rainbow glow** — camera se nikal ke dono taraf daudta hai, phir ghoomta hai |
+| 2 | Upar dekho | Kaali pill: "Connecting…" → **"Connected · <naam>"** + hari dhadakti dot; connect pe glow ek baar chamakta hai |
+| 3 | Share/transfer khatam | Pill: "Disconnected" (grey) kuch second, phir gayab |
+| 4 | Transfer ke beech doosre phone ka Wi-Fi/Bluetooth band karo | Pill laal: **"Connection lost"** + error screen |
+| 5 | Home → Transfer speed: **Fast mode** on, Wi-Fi off | "Wi-Fi is off" row + **Turn On** (Wi-Fi panel khulta hai) |
+| 6 | **Send smaller photos** on karke 5 badi photos bhejo | Bahut jaldi pahunchti hain; receiver pe ~2048 px JPEG |
+| 7 | Home → **When TapShare is closed** → Display over other apps → **Allow** | Settings khulta hai → TapShare on karo → wapas aao, row gayab |
+| 8 | Android 10/11 phone: Location "Allow all the time" | Allow ke baad row gayab |
+| 9 | Dono phones pe TapShare **band** karo (Home button), koi bhi app kholo, phones chhuao | Kinaaron pe glow (doosre app ke upar), TapShare apne-aap khulta hai → poster / Accept |
+| 10 | Phone restart karo, unlock karo, phir 9 dohraao | Bina app khole kaam kare (service boot pe khud chalu) |
+
 ## Phase 2 + 3 test checklist (2 phones, dono pe nayi APK)
 
 | # | Kya karo | Kya dikhna chahiye |

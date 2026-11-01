@@ -73,7 +73,8 @@ Mapping to iPhone tech:
 
 ## Open decisions — ASK Aniket before choosing
 Do not guess these. Ask, then record the answer in this file.
-1. Whether to add **NFC tap trigger** and **UWB / RangingManager** after v1. (Research note: Google's Tap to Share uses NFC — decide after Phase 1 RSSI data.)
+1. Whether to add **NFC tap trigger** and **UWB / RangingManager** after v1.
+   (Decided 2026-11-01: background mode uses SYSTEM_ALERT_WINDOW + ACCESS_BACKGROUND_LOCATION on Android 10/11.) (Research note: Google's Tap to Share uses NFC — decide after Phase 1 RSSI data.)
 2. Whether an **iPhone version** is wanted later.
 3. Final **display name** of the app.
 
@@ -98,7 +99,7 @@ Rule: discovery, handshake and transfer must stay separate, so the transfer meth
 ---
 
 ## Build phases (do in order, one at a time)
-Status: Phase 0 ✅, Phase 1 ✅ tested by Aniket (2026-11-01; Ultra low: touching ≈ −43 dBm, far ≈ −80). Phase 2+3 built together at his request (tap → glow → poster / photos+files) — waiting for his test. Phase 4 next: works with app closed.
+Status: Phase 0 ✅, Phase 1 ✅ tested by Aniket (2026-11-01; Ultra low: touching ≈ −43 dBm, far ≈ −80). Phase 2+3 ✅ working on his phones. 2026-11-01 round 2 (his choices): **rainbow edge glow** (Siri-style) replaces the camera ripple; **connection pill** (Connecting → Connected · name → Disconnected/Connection lost); **Fast mode** (Nearby DISRUPTIVE, default on) + **Send smaller photos** (opt-in); **Phase 4 background** (overlay permission + Android 10/11 background location — he approved both). Waiting for his test. See `docs/research/edge-glow-speed-background.md`.
 APK: every push to `main` → GitHub Actions → https://github.com/aniket550/tapshare/releases/tag/latest
 Finish and test each phase on two real phones before starting the next.
 
